@@ -1,0 +1,29 @@
+# Build directories
+build/
+cmake-build-*/
+out/
+Debug/
+Release/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# Executables
+*.exe
+*.out
+*.o
+*.obj
+mycat
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
