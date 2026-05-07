@@ -6,6 +6,8 @@
 #include <string.h>
 
 
+char * extract_filename_from_path(char * path);
+
 
 int main(int argc, char *argv[]){
     if (argc < 3){
@@ -19,7 +21,11 @@ int main(int argc, char *argv[]){
 
     char dest_path[256] = {0};
     strcat(dest_path, dest_dir);
-    strcat(dest_path, source_file);
+    strcat(dest_path, "/");
+
+    char *src_filename = extract_filename_from_path(source_file);
+
+    strcat(dest_path, src_filename);
 
     int source_fd = open(source_file, O_RDONLY);
     if (source_fd < 0){
@@ -63,10 +69,25 @@ int main(int argc, char *argv[]){
     }
 
 
-
     close(dest_fd);
     close(source_fd);
     return 0;
 }
 
 
+char * extract_filename_from_path(char * path){
+    
+    char *src_filename = malloc(32);
+    memset(src_filename, 0, 32);
+    
+    int filename_i = 0;
+    for (int i = 0; i < strlen(path); ++i){
+        if (path[i] == '/'){
+            filename_i = 0;
+        }
+        src_filename[filename_i] = path[i];
+        filename_i++;
+    }
+
+    return src_filename;
+}
