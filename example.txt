@@ -1,0 +1,10 @@
+Hello from example file
+this is a new line
+another one.
+testing longer files to see if the buffer works correctly
+1
+2
+3
+4
+5
+End of file here.
