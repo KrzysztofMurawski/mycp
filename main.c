@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#define READ_BUFF_SIZE 64
 
 char * extract_filename_from_path(char * path);
 
@@ -15,17 +16,19 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-
     char *source_file = argv[1];
     char *dest_dir = argv[2];
 
-    char dest_path[256] = {0};
+    char *src_filename = extract_filename_from_path(source_file);
+  
+    const ssize_t max_dest_path_len = strlen(src_filename) + strlen(dest_dir) + 2;
+
+    char *dest_path = malloc(max_dest_path_len);
+    memset(dest_path, 0, max_dest_path_len);
     strcat(dest_path, dest_dir);
     strcat(dest_path, "/");
-
-    char *src_filename = extract_filename_from_path(source_file);
-
     strcat(dest_path, src_filename);
+
 
     int source_fd = open(source_file, O_RDONLY);
     if (source_fd < 0){
@@ -33,22 +36,29 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    int dest_fd = creat(dest_path, 0777);
+    int dest_fd = creat(dest_path, 0644);
+    free(dest_path);
     if (dest_fd < 0){
+        close(source_fd);
         perror("Open Destination File");
         return 1;
     }
     
+
     ssize_t bytes_read = 0;
+    char *buffer = malloc(READ_BUFF_SIZE);
 
     while(1){
 
-        char buffer[64] = {0};
+        // memset(buffer, 0, READ_BUFF_SIZE);
+
         bytes_read = read(source_fd, buffer, sizeof(buffer));
         if (bytes_read == 0){
             break;
         } else if (bytes_read < 0){
             perror("Reading");
+            close(source_fd);
+            close(dest_fd);
             return 1;
         }
 
@@ -56,9 +66,11 @@ int main(int argc, char *argv[]){
 
         while (bytes_read > total_written){
 
-            ssize_t bytes_written = write(dest_fd, buffer, sizeof(buffer));
+            ssize_t bytes_written = write(dest_fd, buffer + total_written, sizeof(buffer) - total_written);
             if (bytes_written < 0){
-                perror("Writing to file");
+                perror("Writing");
+                close(source_fd);
+                close(dest_fd);
                 return 1;
             }
 
@@ -76,18 +88,7 @@ int main(int argc, char *argv[]){
 
 
 char * extract_filename_from_path(char * path){
-    
-    char *src_filename = malloc(32);
-    memset(src_filename, 0, 32);
-    
-    int filename_i = 0;
-    for (int i = 0; i < strlen(path); ++i){
-        if (path[i] == '/'){
-            filename_i = 0;
-        }
-        src_filename[filename_i] = path[i];
-        filename_i++;
-    }
-
-    return src_filename;
+    char * slash = strrchr(path, '/');
+    if (slash) return slash;
+    return path;
 }
